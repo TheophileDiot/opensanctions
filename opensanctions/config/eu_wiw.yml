@@ -1,0 +1,28 @@
+name: eu_wiw
+description: "[OSANC] Members of the European Parliament"
+schedule: daily
+pipeline:
+  init:
+    method: seed
+    params:
+      url: "https://op.europa.eu/en/web/who-is-who/search-results?p_p_id=eu_europa_publications_portlet_search_result_summary_SearchResultSummaryPortlet_INSTANCE_R2s6PcS1Wa4m&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&facet.collection=EUDir&WIW_SEARCH_TYPE=SIMPLE&sortBy=RELEVANCE-DESC&SEARCH_TYPE=SIMPLE&resultsPerPage=1"
+    handle:
+      pass: fetch
+  fetch:
+    method: fetch
+    handle:
+      pass: index
+  index:
+    method: opensanctions.crawlers.eu_wiw:index
+    params:
+      url: "https://op.europa.eu/en/web/who-is-who/search-results?p_p_id=eu_europa_publications_portlet_search_result_summary_SearchResultSummaryPortlet_INSTANCE_R2s6PcS1Wa4m&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&facet.collection=EUDir&WIW_SEARCH_TYPE=SIMPLE&sortBy=RELEVANCE-DESC&SEARCH_TYPE=SIMPLE&resultsPerPage=50"
+    handle:
+      pass: fetch_pages
+  fetch_pages:
+    method: fetch
+    handle:
+      pass: parse
+  parse:
+    method: opensanctions.crawlers.eu_wiw:parse
+aggregator:
+  method: ftm_load_aleph

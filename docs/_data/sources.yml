@@ -6,8 +6,8 @@
   category: sanctions
   publisher:
     title: United Nations Security Council
-    url: 'https://www.un.org/en/sc/'
-  url: 'https://www.un.org/sc/suborg/en/sanctions/un-sc-consolidated-list'
+    url: "https://www.un.org/en/sc/"
+  url: "https://www.un.org/sc/suborg/en/sanctions/un-sc-consolidated-list"
   data:
     url: https://scsanctions.un.org/resources/xml/en/consolidated.xml
     format: XML
@@ -19,8 +19,8 @@
   category: pep
   publisher:
     title: WorldPresidentsDB.com
-    url: 'http://www.worldpresidentsdb.com/'
-  url: 'http://www.worldpresidentsdb.com/list/current/'
+    url: "http://www.worldpresidentsdb.com/"
+  url: "http://www.worldpresidentsdb.com/list/current/"
 
 - title: CIA World Leaders
   description: >
@@ -199,4 +199,18 @@
   url: http://www.assembly.coe.int/nw/Home-EN.asp
   data:
     url: http://www.assembly.coe.int/nw/xml/AssemblyList/MP-Alpha-EN.asp?initial=A
+    format: HTML
+
+- title: EU Whoiswho
+  description: >
+    EU Whoiswho is the official directory of the European Union. It lists the
+     contact addresses of all EU institutions and other bodies.
+  slug: eu_wiw
+  category: pep
+  publisher:
+    title: Publications Office of the European Union
+    url: https://op.europa.eu/en/home
+  url: https://op.europa.eu/en/web/who-is-who/
+  data:
+    url: https://op.europa.eu/en/web/who-is-who/search-results?p_p_id=eu_europa_publications_portlet_search_result_summary_SearchResultSummaryPortlet_INSTANCE_R2s6PcS1Wa4m&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&facet.collection=EUDir&WIW_SEARCH_TYPE=SIMPLE&sortBy=RELEVANCE-DESC&SEARCH_TYPE=SIMPLE&resultsPerPage=1
     format: HTML
