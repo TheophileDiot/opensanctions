@@ -1,70 +1,45 @@
-from urllib.parse import urljoin
+from lxml import html
 from pprint import pprint  # noqa
-from datetime import datetime
-from normality import collapse_spaces, stringify
-from ftmstore.memorious import EntityEmitter
+
+UI_URL = "https://www.cia.gov%s"
+DATA_URL = "https://www.cia.gov/page-data%spage-data.json"
 
 
-def element_text(el):
-    if el is None:
-        return
-    text = stringify(el.text_content())
-    if text is not None:
-        return collapse_spaces(text)
+def crawl_country(context, params, path, country):
+    source_url = UI_URL % path
+    context.log.info("Crawling country: %s" % country)
+    res = context.http.get(DATA_URL % path, params=params)
+    data = res.json().get("result", {}).get("data", {}).get("page", {})
+    blocks = data.get("acf", {}).get("blocks", [{}])[0]
+    content = blocks.get("free_form_content", []).get("content")
+    doc = html.fromstring(content)
+    function = None
+    for i, el in enumerate(doc.getchildren()):
+        text = el.text_content().strip()
+        if el.tag == "h2":
+            continue
+        if el.tag == "h3":
+            function = text
+            continue
+        if i == 0 and el.tag == "p":
+            # this paragraph at the start is a note, not a person
+            continue
+        name = text.replace("(Acting)", "")
+        person = context.make("Person")
+        person.make_id(source_url, name, function)
+        person.add("name", name)
+        person.add("country", country)
+        person.add("position", function)
+        person.add("sourceUrl", source_url)
+        person.add("topics", "role.pep")
+        # pprint(person.to_dict())
+        context.emit(person)
 
 
-def parse_updated(text):
-    text = text.strip()
-    try:
-        return datetime.strptime(text, "%d %b %Y").date()
-    except ValueError:
-        pass
-
-
-def parse(context, data):
-    emitter = EntityEmitter(context)
-    url = data.get("url")
-    country = data.get("country")
-    with context.http.rehash(data) as res:
-        doc = res.html
-        output = doc.find('.//div[@id="countryOutput"]')
-        if output is None:
-            return
-        # component = None
-        for row in output.findall(".//li"):
-            # next_comp = row.findtext('./td[@class="componentName"]/strong')
-            # if next_comp is not None:
-            #     component = next_comp
-            #     continue
-            function = element_text(row.find('.//span[@class="title"]'))
-            if function is None:
-                continue
-            name = element_text(row.find('.//span[@class="cos_name"]'))
-            if name is None:
-                continue
-
-            person = emitter.make("Person")
-            person.make_id(url, country, name, function)
-            person.add("name", name)
-            person.add("country", country)
-            person.add("position", function)
-            person.add("sourceUrl", url)
-            person.add("topics", "role.pep")
-            updated_at = doc.findtext('.//span[@id="lastUpdateDate"]')
-            updated_at = parse_updated(updated_at)
-            if updated_at is not None:
-                person.add("modifiedAt", updated_at)
-                person.context["updated_at"] = updated_at.isoformat()
-            emitter.emit(person)
-    emitter.finalize()
-
-
-def index(context, data):
-    url = context.params.get("url")
-    res = context.http.rehash(data)
-    doc = res.html
-
-    for link in doc.findall('.//div[@id="cosAlphaList"]//a'):
-        country_url = urljoin(url, link.get("href"))
-        context.log.info("Crawling country: %s (%s)", link.text, country_url)
-        context.emit(data={"url": country_url, "country": link.text})
+def crawl(context):
+    params = {"_": context.run_id}
+    res = context.http.get(context.dataset.data.url, params=params)
+    data = res.json().get("result", {}).get("data", {})
+    for edge in data.get("governments", {}).get("edges", []):
+        node = edge.get("node", {})
+        crawl_country(context, params, node.get("path"), node.get("title"))
