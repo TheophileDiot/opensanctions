@@ -13,7 +13,7 @@ services:
 
   worker:
     build: .
-    command: opensanctions crawl us_ofac_sdn
+    command: opensanctions crawl fr_freezing_of_assets
     links:
       - postgres
     volumes:
